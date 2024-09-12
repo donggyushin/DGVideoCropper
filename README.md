@@ -2,8 +2,7 @@
 Simple and Clean Video Cropper made by SwiftUI. <br >
 Available above iOS 16. 
 
-https://github.com/user-attachments/assets/8c72b68b-74ce-45bb-ad44-8cb199676f0f
-
+https://github.com/user-attachments/assets/9acbd2e7-5a15-4298-96a4-dea1700b206c
 
 ## Installation
 
