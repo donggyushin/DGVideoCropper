@@ -72,6 +72,8 @@ public final class DGCropModel: ObservableObject {
     }
     
     func dragPlayBar(percentage: Double) {
+        guard percentage <= endPosition && percentage >= startPostion else { return }
+        
         self.currentTime = duration * percentage
         avPlayer.seek(to: CMTime(seconds: currentTime, preferredTimescale: 1000000))
     }
@@ -148,6 +150,7 @@ public final class DGCropModel: ObservableObject {
             self.currentTime = currentTime
             avPlayer.seek(to: CMTime(seconds: currentTime, preferredTimescale: 1000000))
         }
+        avPlayer.pause()
     }
 }
 

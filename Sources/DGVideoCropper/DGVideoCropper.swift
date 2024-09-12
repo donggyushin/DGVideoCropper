@@ -51,7 +51,7 @@ public struct DGVideoCropper: View {
                         .overlay(alignment: .leading) {
                             RoundedRectangle(cornerRadius: 6)
                                 .fill(.black.opacity(0.4))
-                                .frame(width: geo.size.width * model.startPostion)
+                                .frame(width: geo.size.width * model.startPostion + 15)
                                 .offset(x: -15)
                         }
                         .overlay(alignment: .trailing) {
