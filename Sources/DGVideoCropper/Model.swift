@@ -24,6 +24,8 @@ public final class DGCropModel: ObservableObject {
     
     @Published var imageFrames: [IdentifiableImage] = []
     
+    private var cancellables = Set<AnyCancellable>()
+    
     public init(url: URL) {
         avPlayer = .init(url: url)
         self.url = url
@@ -115,6 +117,12 @@ public final class DGCropModel: ObservableObject {
             .combineLatest($endPosition, $duration)
             .map({ $0.0 * $0.2 })
             .assign(to: &$currentTime)
+        
+        $percentage
+            .combineLatest($startPostion, $endPosition)
+            .filter({ percentage, start, end in (percentage < start || percentage > end) })
+            .sink { [weak self] in self?.adjustCurrentTimeAndStopVideo(percentage: $0.0, start: $0.1, end: $0.2) }
+            .store(in: &cancellables)
     }
     
     private func updateCurrentTime() {
@@ -126,6 +134,20 @@ public final class DGCropModel: ObservableObject {
         DivideDurationUseCase(duration: duration, divide: 30)
             .execute()
             .compactMap({ imageFromVideo(url: url, at: $0) })
+    }
+    
+    private func adjustCurrentTimeAndStopVideo(percentage: Double, start: Double, end: Double) {
+        if percentage < start {
+            let percentage = start
+            let currentTime = duration * percentage
+            self.currentTime = currentTime
+            avPlayer.seek(to: CMTime(seconds: currentTime, preferredTimescale: 1000000))
+        } else if percentage > end {
+            let percentage = end
+            let currentTime = duration * percentage
+            self.currentTime = currentTime
+            avPlayer.seek(to: CMTime(seconds: currentTime, preferredTimescale: 1000000))
+        }
     }
 }
 
