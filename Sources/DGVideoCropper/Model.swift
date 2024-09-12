@@ -11,9 +11,8 @@ import SwiftUI
 
 @MainActor
 public final class DGCropModel: ObservableObject {
-    public let avPlayer: AVPlayer
-    public let url: URL
-    
+    let avPlayer: AVPlayer
+    let url: URL
     var timer: Timer?
     
     @Published public var currentTime: TimeInterval = 0
@@ -54,6 +53,14 @@ public final class DGCropModel: ObservableObject {
         return try await cropVideo(sourceURL: url, start: start, end: end)
     }
     
+    public func moveLeftHandleBar(percentage: Double) {
+        dragHandleBar(percentage: percentage, left: true)
+    }
+    
+    public func moveRightHandleBar(percentage: Double) {
+        dragHandleBar(percentage: percentage, left: false)
+    }
+    
     func tapVideo() {
         if isPlaying {
             pause()
@@ -68,9 +75,12 @@ public final class DGCropModel: ObservableObject {
     }
     
     func dragHandleBar(percentage: Double, left: Bool) {
+        guard percentage >= 0 && percentage <= 1 else { return }
         if left {
+            guard percentage < endPosition else { return }
             self.startPostion = percentage
         } else {
+            guard percentage > startPostion else { return }
             self.endPosition = percentage
         }
         avPlayer.seek(to: CMTime(seconds: currentTime, preferredTimescale: 1000000))
