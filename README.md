@@ -33,7 +33,6 @@ import DGVideoCropper
 
 struct ContentView: View {
     
-    @State var successURL: URL?
     let model: DGCropModel = .init(url: {`valid file path url`} ) // if you input remote url, then fail to crop video.
     
     var body: some View {
