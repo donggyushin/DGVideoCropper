@@ -57,7 +57,8 @@ public struct DGVideoCropper: View {
                         .overlay(alignment: .trailing) {
                             RoundedRectangle(cornerRadius: 6)
                                 .fill(.black.opacity(0.4))
-                                .frame(width: geo.size.width * (1 - model.endPosition))
+                                .frame(width: geo.size.width * (1 - model.endPosition) + 15)
+                                .offset(x: 15)
                         }
                         .overlay(alignment: .leading) {
                             HandleBar()
@@ -149,3 +150,29 @@ public struct DGVideoCropper: View {
             }
     }
 }
+
+#if DEBUG
+private struct DGVideoCropperPreview: View {
+    
+    @State var model: DGCropModel?
+    
+    var body: some View {
+        ZStack {
+            if let model {
+                DGVideoCropper(model: model)
+            }
+        }
+        .onAppear {
+            let path = Bundle.module.url(forResource: "sample_video", withExtension: "mp4")!
+            Task { @MainActor in
+                model = .init(url: path)
+            }
+        }
+    }
+}
+
+#Preview {
+    DGVideoCropperPreview()
+        .preferredColorScheme(.dark)
+}
+#endif
