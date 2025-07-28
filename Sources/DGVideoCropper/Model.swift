@@ -106,9 +106,15 @@ public final class DGCropModel: ObservableObject {
             .combineLatest($duration)
             .filter({ $0.1 > 0 })
             .first()
-            .compactMap({ [weak self] in self?.getImageFrames(duration: $0.1) })
-            .map({ $0.map({ IdentifiableImage(image: $0) }) })
-            .assign(to: &$imageFrames)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _, duration in
+                Task {
+                    guard let images = try await self?.getImageFrames(duration: duration) else { return }
+                    let identifiableImages = images.map { IdentifiableImage(image: $0) }
+                    self?.imageFrames = identifiableImages
+                }
+            }
+            .store(in: &cancellables)
             
         $duration
             .combineLatest($currentTime)
@@ -132,10 +138,21 @@ public final class DGCropModel: ObservableObject {
         self.currentTime = CMTimeGetSeconds(currentTime)
     }
     
-    private func getImageFrames(duration: TimeInterval) -> [Image] {
-        DivideDurationUseCase(duration: duration, divide: 30)
+    private func getImageFrames(duration: TimeInterval) async throws -> [Image] {
+        let timeIntervals = DivideDurationUseCase(duration: duration, divide: 30)
             .execute()
-            .compactMap({ imageFromVideo(url: url, at: $0) })
+        
+        let asset: AVURLAsset = .init(url: url)
+        
+        var images: [Image] = []
+        
+        for timeInterval in timeIntervals {
+            let image: Image = try await subtractImageFromVideo(asset, at: timeInterval)
+            
+            images.append(image)
+        }
+        
+        return images
     }
     
     private func adjustCurrentTimeAndStopVideo(percentage: Double, start: Double, end: Double) {
