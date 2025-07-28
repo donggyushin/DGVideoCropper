@@ -9,7 +9,7 @@ import SwiftUI
 import AVKit
 import AVFoundation
 
-func imageFromVideo(url: URL, at time: TimeInterval) -> UIImage? {
+public func imageFromVideo(url: URL, at time: TimeInterval) -> UIImage? {
     let asset = AVURLAsset(url: url)
 
     let assetIG = AVAssetImageGenerator(asset: asset)
@@ -28,7 +28,7 @@ func imageFromVideo(url: URL, at time: TimeInterval) -> UIImage? {
     return UIImage(cgImage: thumbnailImageRef)
 }
 
-func imageFromVideo(url: URL, at time: TimeInterval) -> Image? {
+public func imageFromVideo(url: URL, at time: TimeInterval) -> Image? {
     guard let uiImage: UIImage = imageFromVideo(url: url, at: time) else { return nil }
     return .init(uiImage: uiImage)
 }
