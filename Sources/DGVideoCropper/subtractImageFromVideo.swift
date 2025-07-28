@@ -9,7 +9,22 @@ import SwiftUI
 import AVKit
 import AVFoundation
 
-public func subtractImageFromVideo(_ asset: AVURLAsset, at time: TimeInterval) async throws -> UIImage {
+extension Data {
+    func getAVAsset() -> AVAsset {
+        let directory = NSTemporaryDirectory()
+        let fileName = "\(NSUUID().uuidString).mp4"
+        let fullURL = NSURL.fileURL(withPathComponents: [directory, fileName])
+        try! self.write(to: fullURL!)
+        let asset = AVAsset(url: fullURL!)
+        return asset
+    }
+}
+
+public func subtractImageFromVideo(_ data: Data, at time: TimeInterval) async throws -> UIImage {
+    return try await subtractImageFromVideo(data.getAVAsset(), at: time)
+}
+
+public func subtractImageFromVideo(_ asset: AVAsset, at time: TimeInterval) async throws -> UIImage {
     let assetIG = AVAssetImageGenerator(asset: asset)
     assetIG.appliesPreferredTrackTransform = true
     assetIG.apertureMode = .encodedPixels
