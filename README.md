@@ -14,7 +14,7 @@ Once you have your Swift package set up, adding `DGVideoCropper` as a dependency
 
 ```
 dependencies: [
-   .package(url: "https://github.com/donggyushin/DGVideoCropper", .upToNextMajor(from: "1.1.0"))
+   .package(url: "https://github.com/donggyushin/DGVideoCropper", .upToNextMajor(from: "1.1.1"))
 ]
 ```
 
