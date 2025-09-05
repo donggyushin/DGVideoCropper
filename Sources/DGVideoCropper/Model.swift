@@ -147,9 +147,12 @@ public final class DGCropModel: ObservableObject {
         var images: [Image] = []
         
         for timeInterval in timeIntervals {
-            let image: Image = try await subtractImageFromVideo(asset, at: timeInterval)
-            
-            images.append(image)
+            do {
+                let image: Image = try await subtractImageFromVideo(asset, at: timeInterval)
+                images.append(image)
+            } catch {
+                print("[DGVideoCropper] \(error)")
+            }
         }
         
         return images
