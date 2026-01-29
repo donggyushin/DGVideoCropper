@@ -14,6 +14,7 @@ public final class DGCropModel: ObservableObject {
     let avPlayer: AVPlayer
     let url: URL
     var timer: Timer?
+    let maxTimeInterval: TimeInterval?
 
     @Published public var currentTime: TimeInterval = 0
     @Published public var duration: TimeInterval = 0
@@ -26,9 +27,10 @@ public final class DGCropModel: ObservableObject {
 
     private var cancellables = Set<AnyCancellable>()
 
-    public init(url: URL) {
+    public init(url: URL, maxTimeInterval: TimeInterval? = nil) {
         self.avPlayer = .init(url: url)
         self.url = url
+        self.maxTimeInterval = maxTimeInterval
         bind()
     }
 
