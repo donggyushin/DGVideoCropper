@@ -16,6 +16,8 @@ public final class DGCropModel: ObservableObject {
     var timer: Timer?
     let maxTimeInterval: TimeInterval?
 
+    var maxPositionDiff: Double = 1
+
     @Published public var currentTime: TimeInterval = 0
     @Published public var duration: TimeInterval = 0
     @Published public var percentage: Double = 0
@@ -46,6 +48,7 @@ public final class DGCropModel: ObservableObject {
         guard let maxTimeInterval else { return }
         guard maxTimeInterval < duration else { return }
         endPosition = maxTimeInterval / duration
+        maxPositionDiff = endPosition - startPostion
     }
 
     public func play() {
