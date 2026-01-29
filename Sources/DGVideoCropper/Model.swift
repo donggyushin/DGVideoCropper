@@ -15,7 +15,6 @@ public final class DGCropModel: ObservableObject {
     let url: URL
     var timer: Timer?
     let maxTimeInterval: TimeInterval?
-
     var maxPositionDiff: Double = 1
 
     @Published public var currentTime: TimeInterval = 0
@@ -107,6 +106,17 @@ public final class DGCropModel: ObservableObject {
             endPosition = percentage
         }
         avPlayer.seek(to: CMTime(seconds: currentTime, preferredTimescale: 1_000_000))
+
+        let currentDiff = endPosition - startPostion
+        if currentDiff > maxPositionDiff {
+            let diff = currentDiff - maxPositionDiff
+
+            if left == false {
+                startPostion = startPostion + diff
+            } else {
+                endPosition = endPosition - diff
+            }
+        }
     }
 
     private func bind() {
