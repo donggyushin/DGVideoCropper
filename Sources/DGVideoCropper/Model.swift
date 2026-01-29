@@ -1,12 +1,12 @@
 //
-//  File.swift
+//  Model.swift
 //  DGVideoCropper
 //
 //  Created by 신동규 on 9/12/24.
 //
 
-import Combine
 import AVKit
+import Combine
 import SwiftUI
 
 @MainActor
@@ -14,24 +14,24 @@ public final class DGCropModel: ObservableObject {
     let avPlayer: AVPlayer
     let url: URL
     var timer: Timer?
-    
+
     @Published public var currentTime: TimeInterval = 0
     @Published public var duration: TimeInterval = 0
     @Published public var percentage: Double = 0
     @Published public var isPlaying: Bool = false
     @Published public var startPostion: Double = 0
     @Published public var endPosition: Double = 1
-    
+
     @Published var imageFrames: [IdentifiableImage] = []
-    
+
     private var cancellables = Set<AnyCancellable>()
-    
+
     public init(url: URL) {
-        avPlayer = .init(url: url)
+        self.avPlayer = .init(url: url)
         self.url = url
         bind()
     }
-    
+
     public func play() {
         isPlaying = true
         avPlayer.play()
@@ -41,28 +41,28 @@ public final class DGCropModel: ObservableObject {
             }
         }
     }
-    
+
     public func pause() {
         isPlaying = false
         avPlayer.pause()
         timer?.invalidate()
     }
-    
+
     public func crop() async throws -> URL {
         let start = duration * startPostion
         let end = duration * endPosition
-        
+
         return try await cropVideo(sourceURL: url, start: start, end: end)
     }
-    
+
     public func moveLeftHandleBar(percentage: Double) {
         dragHandleBar(percentage: percentage, left: true)
     }
-    
+
     public func moveRightHandleBar(percentage: Double) {
         dragHandleBar(percentage: percentage, left: false)
     }
-    
+
     func tapVideo() {
         if isPlaying {
             pause()
@@ -70,41 +70,41 @@ public final class DGCropModel: ObservableObject {
             play()
         }
     }
-    
+
     func dragPlayBar(percentage: Double) {
-        guard percentage <= endPosition && percentage >= startPostion else { return }
-        
-        self.currentTime = duration * percentage
-        avPlayer.seek(to: CMTime(seconds: currentTime, preferredTimescale: 1000000))
+        guard percentage <= endPosition, percentage >= startPostion else { return }
+
+        currentTime = duration * percentage
+        avPlayer.seek(to: CMTime(seconds: currentTime, preferredTimescale: 1_000_000))
     }
-    
+
     func dragHandleBar(percentage: Double, left: Bool) {
-        guard percentage >= 0 && percentage <= 1 else { return }
+        guard percentage >= 0, percentage <= 1 else { return }
         if left {
             guard percentage < endPosition else { return }
-            self.startPostion = percentage
+            startPostion = percentage
         } else {
             guard percentage > startPostion else { return }
-            self.endPosition = percentage
+            endPosition = percentage
         }
-        avPlayer.seek(to: CMTime(seconds: currentTime, preferredTimescale: 1000000))
+        avPlayer.seek(to: CMTime(seconds: currentTime, preferredTimescale: 1_000_000))
     }
-    
+
     private func bind() {
         avPlayer
             .currentItem?
             .publisher(for: \.duration)
-            .filter({ !CMTIME_IS_INDEFINITE($0) })
+            .filter { !CMTIME_IS_INDEFINITE($0) }
             .removeDuplicates()
-            .map({ CMTimeGetSeconds($0) })
+            .map { CMTimeGetSeconds($0) }
             .assign(to: &$duration)
-        
+
         avPlayer
             .currentItem?
             .publisher(for: \.status)
-            .filter({ $0 == .readyToPlay })
+            .filter { $0 == .readyToPlay }
             .combineLatest($duration)
-            .filter({ $0.1 > 0 })
+            .filter { $0.1 > 0 }
             .first()
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _, duration in
@@ -115,37 +115,37 @@ public final class DGCropModel: ObservableObject {
                 }
             }
             .store(in: &cancellables)
-            
+
         $duration
             .combineLatest($currentTime)
-            .map({ duration, currentTime in currentTime / duration })
+            .map { duration, currentTime in currentTime / duration }
             .assign(to: &$percentage)
-        
+
         $startPostion
             .combineLatest($endPosition, $duration)
-            .map({ $0.0 * $0.2 })
+            .map { $0.0 * $0.2 }
             .assign(to: &$currentTime)
-        
+
         $percentage
             .combineLatest($startPostion, $endPosition)
-            .filter({ percentage, start, end in (percentage < start || percentage > end) })
+            .filter { percentage, start, end in percentage < start || percentage > end }
             .sink { [weak self] in self?.adjustCurrentTimeAndStopVideo(percentage: $0.0, start: $0.1, end: $0.2) }
             .store(in: &cancellables)
     }
-    
+
     private func updateCurrentTime() {
         guard let currentTime = avPlayer.currentItem?.currentTime() else { return }
         self.currentTime = CMTimeGetSeconds(currentTime)
     }
-    
+
     private func getImageFrames(duration: TimeInterval) async throws -> [Image] {
         let timeIntervals = DivideDurationUseCase(duration: duration, divide: 30)
             .execute()
-        
+
         let asset: AVURLAsset = .init(url: url)
-        
+
         var images: [Image] = []
-        
+
         for timeInterval in timeIntervals {
             do {
                 let image: Image = try await subtractImageFromVideo(asset, at: timeInterval)
@@ -154,21 +154,21 @@ public final class DGCropModel: ObservableObject {
                 print("[DGVideoCropper] \(error)")
             }
         }
-        
+
         return images
     }
-    
+
     private func adjustCurrentTimeAndStopVideo(percentage: Double, start: Double, end: Double) {
         if percentage < start {
             let percentage = start
             let currentTime = duration * percentage
             self.currentTime = currentTime
-            avPlayer.seek(to: CMTime(seconds: currentTime, preferredTimescale: 1000000))
+            avPlayer.seek(to: CMTime(seconds: currentTime, preferredTimescale: 1_000_000))
         } else if percentage > end {
             let percentage = end
             let currentTime = duration * percentage
             self.currentTime = currentTime
-            avPlayer.seek(to: CMTime(seconds: currentTime, preferredTimescale: 1000000))
+            avPlayer.seek(to: CMTime(seconds: currentTime, preferredTimescale: 1_000_000))
         }
         avPlayer.pause()
     }
