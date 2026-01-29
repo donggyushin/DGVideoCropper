@@ -168,7 +168,7 @@ private struct DGVideoCropperPreview: View {
             let path = Bundle.module.url(forResource: "sample_video", withExtension: "mp4")!
 //            let path = Bundle.module.url(forResource: "IMG_8188", withExtension: "MOV")!
             Task { @MainActor in
-                model = .init(url: path, maxTimeInterval: 10)
+                model = .init(url: path, maxTimeInterval: 5)
             }
         }
     }
