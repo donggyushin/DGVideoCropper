@@ -99,10 +99,14 @@ public final class DGCropModel: ObservableObject {
     func dragHandleBar(percentage: Double, left: Bool) {
         guard percentage >= 0, percentage <= 1 else { return }
         if left {
-            guard percentage < endPosition else { return }
+            if endPosition <= percentage {
+                endPosition = percentage + 0.01
+            }
             startPostion = percentage
         } else {
-            guard percentage > startPostion else { return }
+            if startPostion >= percentage {
+                startPostion = percentage - 0.01
+            }
             endPosition = percentage
         }
         avPlayer.seek(to: CMTime(seconds: currentTime, preferredTimescale: 1_000_000))
