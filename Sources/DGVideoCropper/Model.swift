@@ -106,7 +106,10 @@ public final class DGCropModel: ObservableObject {
             endPosition = percentage
         }
         avPlayer.seek(to: CMTime(seconds: currentTime, preferredTimescale: 1_000_000))
+        adjustPositionsIfNeeded(left: left)
+    }
 
+    private func adjustPositionsIfNeeded(left: Bool) {
         let currentDiff = endPosition - startPostion
         if currentDiff > maxPositionDiff {
             let diff = currentDiff - maxPositionDiff
