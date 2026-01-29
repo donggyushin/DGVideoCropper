@@ -34,6 +34,14 @@ public final class DGCropModel: ObservableObject {
         bind()
     }
 
+    public func getDuration() async throws -> CGFloat {
+        // AVAsset의 async load 메서드 사용
+        let asset = AVURLAsset(url: url)
+        let duration = try await asset.load(.duration)
+        let seconds = CMTimeGetSeconds(duration)
+        return seconds
+    }
+
     public func play() {
         isPlaying = true
         avPlayer.play()
@@ -93,14 +101,6 @@ public final class DGCropModel: ObservableObject {
     }
 
     private func bind() {
-        avPlayer
-            .currentItem?
-            .publisher(for: \.duration)
-            .filter { !CMTIME_IS_INDEFINITE($0) }
-            .removeDuplicates()
-            .map { CMTimeGetSeconds($0) }
-            .assign(to: &$duration)
-
         avPlayer
             .currentItem?
             .publisher(for: \.status)

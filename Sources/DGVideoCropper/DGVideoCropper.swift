@@ -80,6 +80,10 @@ public struct DGVideoCropper: View {
             }
             .frame(height: 57)
         }
+        .task {
+            guard let duration = try? await model.getDuration() else { return }
+            model.duration = duration
+        }
     }
 
     @State private var shouldPlayVideo: Bool = false
