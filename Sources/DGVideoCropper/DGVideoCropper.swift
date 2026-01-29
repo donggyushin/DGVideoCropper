@@ -4,13 +4,12 @@
 import SwiftUI
 
 public struct DGVideoCropper: View {
-    
     @StateObject var model: DGCropModel
-    
+
     public init(model: DGCropModel) {
         _model = .init(wrappedValue: model)
     }
-    
+
     public var body: some View {
         VStack(spacing: 25) {
             VideoViewerUIKitContainer(player: model.avPlayer)
@@ -19,16 +18,16 @@ public struct DGVideoCropper: View {
                     model.tapVideo()
                 }
                 .padding(.horizontal, 5)
-            
+
             ZStack {
-                HStack(spacing:0) {
+                HStack(spacing: 0) {
                     ForEach(model.imageFrames) { image in
                         image.image
                             .resizable()
                     }
                 }
                 .clipShape(RoundedRectangle(cornerRadius: 6))
-                
+
                 GeometryReader { geo in
                     RoundedRectangle(cornerRadius: 6)
                         .fill(.clear)
@@ -78,12 +77,16 @@ public struct DGVideoCropper: View {
                         }
                 }
                 .padding(.horizontal, 15)
-                
             }
             .frame(height: 57)
         }
+        .task {
+            guard let duration = try? await model.getDuration() else { return }
+            model.duration = duration
+            model.configInitialEndPosition()
+        }
     }
-    
+
     @State private var shouldPlayVideo: Bool = false
     @State private var previousPercentage: Double = 0
     @State private var gestureStarted: Bool = false
@@ -99,7 +102,7 @@ public struct DGVideoCropper: View {
                     previousPercentage = model.percentage
                 }
                 let width = value.translation.width
-                var newPercentage = width / (fullWidth)
+                var newPercentage = width / fullWidth
                 newPercentage += previousPercentage
                 newPercentage = min(newPercentage, 1)
                 newPercentage = max(0, newPercentage)
@@ -113,7 +116,7 @@ public struct DGVideoCropper: View {
                 gestureStarted = false
             }
     }
-    
+
     private func handleBarDragGesture(fullWidth: CGFloat, left: Bool) -> some Gesture {
         DragGesture()
             .onChanged { value in
@@ -130,7 +133,7 @@ public struct DGVideoCropper: View {
                     }
                 }
                 let width = value.translation.width
-                var newPercentage = width / (fullWidth)
+                var newPercentage = width / fullWidth
                 newPercentage += previousPercentage
                 if left {
                     newPercentage = min(newPercentage, model.endPosition)
@@ -153,9 +156,8 @@ public struct DGVideoCropper: View {
 
 #if DEBUG
 private struct DGVideoCropperPreview: View {
-    
     @State var model: DGCropModel?
-    
+
     var body: some View {
         ZStack {
             if let model {
@@ -166,7 +168,7 @@ private struct DGVideoCropperPreview: View {
             let path = Bundle.module.url(forResource: "sample_video", withExtension: "mp4")!
 //            let path = Bundle.module.url(forResource: "IMG_8188", withExtension: "MOV")!
             Task { @MainActor in
-                model = .init(url: path)
+                model = .init(url: path, maxTimeInterval: 5)
             }
         }
     }
