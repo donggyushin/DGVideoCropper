@@ -42,6 +42,12 @@ public final class DGCropModel: ObservableObject {
         return seconds
     }
 
+    public func configInitialEndPosition() {
+        guard let maxTimeInterval else { return }
+        guard maxTimeInterval < duration else { return }
+        endPosition = maxTimeInterval / duration
+    }
+
     public func play() {
         isPlaying = true
         avPlayer.play()

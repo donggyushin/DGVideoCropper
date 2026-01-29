@@ -83,6 +83,7 @@ public struct DGVideoCropper: View {
         .task {
             guard let duration = try? await model.getDuration() else { return }
             model.duration = duration
+            model.configInitialEndPosition()
         }
     }
 
